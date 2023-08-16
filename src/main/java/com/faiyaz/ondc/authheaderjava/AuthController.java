@@ -54,7 +54,7 @@ public class AuthController {
             System.out.println("Test Timestamp :" + testTimestamp);
             
             String ukid = uniquekey;
-            String kid = subscriberId + ukid + "|ed25519";
+            String kid = subscriberId+"|" + ukid + "|ed25519";
 
             //
             System.out.println("privateKey:  "+ privateKey);
