@@ -36,6 +36,7 @@ public class AuthController {
     public String auth(@RequestBody String req,
                        @RequestHeader("privatekey") String privateKey,
                        @RequestHeader("publickey") String publicKey,
+                        @RequestHeader("subscriberId") String subscriberId,
                        @RequestHeader("uniquekey") String uniquekey) {
         setup();
 
@@ -53,7 +54,7 @@ public class AuthController {
             System.out.println("Test Timestamp :" + testTimestamp);
             
             String ukid = uniquekey;
-            String kid = "api.greenreceipt.in|" + ukid + "|ed25519";
+            String kid = subscriberId + ukid + "|ed25519";
 
             //
             System.out.println("privateKey:  "+ privateKey);
