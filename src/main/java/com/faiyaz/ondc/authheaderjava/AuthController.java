@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.Security;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
 import java.util.UUID;
 
 import org.bouncycastle.crypto.CryptoException;
@@ -21,6 +23,9 @@ import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import java.time.format.DateTimeFormatter;  
+import java.time.LocalDateTime;
 
 @Controller
 @RestController
@@ -36,51 +41,65 @@ public class AuthController {
     public String auth(@RequestBody String req,
                        @RequestHeader("privatekey") String privateKey,
                        @RequestHeader("publickey") String publicKey,
-                        @RequestHeader("subscriberId") String subscriberId,
-                       @RequestHeader("uniquekey") String uniquekey) {
+                       @RequestHeader("uniquekey") String uniquekey, 
+                       @RequestHeader("subscriberid") String subcriberid) {
         setup();
 
         try {
-            StringBuilder sb = new StringBuilder();
-            UUID uuid = UUID.randomUUID();
-            String generatedString = uuid.toString();
 
-            System.out.println("Your UUID is: " + generatedString);
+           
+
+ Date date = new Date(); 
+SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+String formattedDate = formatter.format(date);
+System.out.println("Request start Timestamp:   " + formattedDate);
+            
+            // DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
+           //  LocalDateTime now = LocalDateTime.now();  
+           // System.out.println("Request Start Timestamp: "+ dtf.format(now));
+
+            StringBuilder sb = new StringBuilder();
+            // UUID uuid = UUID.randomUUID();
+             // String generatedString = uuid.toString();
+
+           //  System.out.println("Your UUID is: " + generatedString);
 
             long testTimestamp = System.currentTimeMillis() / 1000L;
 
             sb.append(req);
             sb.append("^");
-            System.out.println("Test Timestamp :" + testTimestamp);
+           // System.out.println("Test Timestamp :" + testTimestamp);
             
-            String ukid = uniquekey;
-            String kid = subscriberId+"|" + ukid + "|ed25519";
+             String ukid = uniquekey;
+            String subscriberId = subcriberid;
+            // String kid = "greenreceipt.in|" + ukid + "|ed25519";
+           String kid = subscriberId + "|" + ukid + "|ed25519";
 
-            //
-            System.out.println("privateKey:  "+ privateKey);
-            System.out.println("publicKey:  "+ publicKey);
-            System.out.println("kid:  "+ kid);
+            //  
+            // System.out.println("privateKey:  "+ privateKey);
+            // System.out.println("publicKey:  "+ publicKey);
+            // System.out.println("kid:  "+ kid);
             //
 
-            System.out.println("\n==============================Json Request===================================");
-            System.out.println(req);
+            // System.out.println("\n==============================Json Request===================================");
+            // System.out.println(req);
 
             String blakeValue = generateBlakeHash(req);
 
-            System.out.println("\n==============================Digest Value ===================================");
-            System.out.println(blakeValue);
+            // System.out.println("\n==============================Digest Value ===================================");
+           //  System.out.println(blakeValue);
             String signingString = "(created): " + testTimestamp + "\n(expires): " + (testTimestamp + 60000)
                     + "\ndigest: BLAKE-512=" + blakeValue + "";
 
-            System.out.println("\n==============================Data to Sign===================================\n");
-            System.out.println(signingString);
+            // System.out.println("\n==============================Data to Sign===================================\n");
+            // System.out.println(signingString);
 
-            String header = "(" + testTimestamp + ") (" + (testTimestamp + 60000) + ") BLAKE-512=" + blakeValue + "";
-            System.out.println("\nHeader:  " + header);
+           // String header = "(" + testTimestamp + ") (" + (testTimestamp + 60000) + ") BLAKE-512=" + blakeValue + "";
+           //  System.out.println("\nHeader:  " + header);
 
             String signedReq = generateSignature(signingString, privateKey);
 
-            System.out.println("\nSignature : " + signedReq);
+           //  System.out.println("\nSignature : " + signedReq);
 
             String authHeader = "Signature keyId=\"" + kid + "\",algorithm=\"ed25519\", created=\""
                     + testTimestamp + "\", expires=\"" + (testTimestamp + 60000)
@@ -118,7 +137,7 @@ public class AuthController {
     public static void setup() {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
-            System.out.println(Security.addProvider(new BouncyCastleProvider()));
+           //  System.out.println(Security.addProvider(new BouncyCastleProvider()));
         }
     }
 
@@ -142,7 +161,19 @@ public class AuthController {
 
             byte[] decodedSign = Base64.getDecoder().decode(sign);
             isVerified = sv.verifySignature(decodedSign);
-            System.out.println("Is Sign Verified : " + isVerified);
+
+ Date date = new Date(); 
+SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+String formattedDate = formatter.format(date);
+//System.out.println("Request start Timestamp:   " + formattedDate);
+
+
+
+
+            // DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  
+            // LocalDateTime now = LocalDateTime.now();  
+           
+            System.out.println("Is Sign Verified : " + isVerified + "  Timestamp: "+ formattedDate);
         } catch (Exception e) {
             e.printStackTrace();
         }
